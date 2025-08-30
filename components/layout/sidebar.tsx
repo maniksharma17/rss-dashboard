@@ -22,7 +22,7 @@ export const Sidebar = ({
   toggleSidebar: (x: boolean) => void;
 }) => {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const navigationItems = [
     {
@@ -130,6 +130,7 @@ export const Sidebar = ({
               if (typeof window !== "undefined") {
                 window.location.href = "/login";
               }
+              logout();
             }}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg 
                text-orange-600 border border-orange-600
