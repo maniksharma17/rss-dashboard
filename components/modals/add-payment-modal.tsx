@@ -64,7 +64,10 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const result = await createPayment({ ...data, memberId });
+      const result = await createPayment({
+        ...data, memberId,
+        description: ''
+      });
       if (result) {
         form.reset();
         onClose();
