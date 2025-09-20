@@ -44,9 +44,9 @@ export const NODE_TYPES = [
   'Prant',
   'Vibhag',
   'Jila',
-  'Nagar',
-  'Khand',
-  'Branch'
+  'Nagar/Khand',
+  'Basti/Mandal',
+  'Gram/Shakha/Mohalla/Sthaan'
 ] as const;
 
 export type NodeType = typeof NODE_TYPES[number];
@@ -56,8 +56,9 @@ export const CHILD_TYPE_MAP: Record<NodeType, NodeType | null> = {
   Kshetra: 'Prant',
   Prant: 'Vibhag',
   Vibhag: 'Jila',
-  Jila: 'Nagar',
-  Nagar: 'Khand',
-  Khand: 'Branch',
-  Branch: null,
+  Jila: 'Nagar/Khand',
+  'Nagar/Khand': 'Basti/Mandal',
+  'Basti/Mandal': 'Gram/Shakha/Mohalla/Sthaan',
+  'Gram/Shakha/Mohalla/Sthaan': null,
 };
+1 

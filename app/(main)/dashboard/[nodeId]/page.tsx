@@ -94,7 +94,7 @@ export default function DashboardPage() {
 
   const canAddChild =
     node?.type && CHILD_TYPE_MAP[node.type as keyof typeof CHILD_TYPE_MAP];
-  const isBranch = node?.type === "Branch";
+  const isBranch = node?.type === "Gram/Shakha/Mohalla/Sthaan";
 
   // Fetch Children
   const fetchChildren = useCallback(
@@ -189,11 +189,7 @@ export default function DashboardPage() {
     { key: "phone", header: "Phone" },
     { key: "age", header: "Age" },
     { key: "occupation", header: "Occupation" },
-    {
-      key: "totalPayment",
-      header: "Total Payment",
-      render: (value) => `₹${value?.toLocaleString() || "0"}`,
-    },
+    
     {
       key: "_id",
       header: "Actions",

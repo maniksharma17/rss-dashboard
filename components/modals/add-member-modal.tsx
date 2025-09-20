@@ -1,14 +1,14 @@
-'use client';
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+"use client";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -16,19 +16,52 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useMembers } from '@/hooks/use-members';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMembers } from "@/hooks/use-members";
+import { Label } from "../ui/label";
+import { usePayments } from "@/hooks/use-payments";
 
-const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  address: z.string().min(1, 'Address is required'),
-  age: z.number().min(1, 'Age must be greater than 0'),
-  occupation: z.string().min(1, 'Occupation is required'),
-});
+// Training options
+const trainingOptions = [
+  "प्रारंभिक",
+  "प्राथमिक",
+  "संघ शिक्षा वर्ग-१",
+  "संघ शिक्षा वर्ग-२",
+];
+
+// -------------------
+// Validation Schema
+// -------------------
+const schema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address").or(z.literal("")),
+    phone: z.string().min(10, "Phone number must be at least 10 digits"),
+    address: z.string().min(1, "Address is required"),
+    age: z.number().min(1, "Age must be greater than 0"),
+
+    occupation: z.string().min(1, "Occupation is required"),
+    otherOccupation: z.string().optional(),
+    educationLevel: z.string().optional(),
+    college: z.string().optional(),
+
+    birthYear: z.string().optional(),
+    sanghYears: z.coerce.number().optional(),
+    role: z.string().optional(),
+    training: z.string().optional(),
+    uniform: z.boolean().optional(),
+
+    amount: z.string().optional(),
+  });
 
 type FormData = z.infer<typeof schema>;
 
@@ -44,34 +77,66 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
   branchId,
 }) => {
   const { createMember, loading } = useMembers();
+  const { createPayment } = usePayments();
+  const [amount, setAmount] = useState<number | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
       age: 0,
-      occupation: '',
+      occupation: "",
+      otherOccupation: "",
+      educationLevel: "",
+      college: "",
+      birthYear: "",
+      sanghYears: undefined,
+      role: "",
+      training: "",
+      uniform: false,
     },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
-      const result = await createMember({ ...data, branchId });
+      const finalOccupation =
+        data.occupation === "Other" ? data.otherOccupation : data.occupation;
+
+      const result = await createMember({
+        ...data,
+        occupation: finalOccupation || "",
+        branchId,
+      });
+
+      const memberId = result?._id as string;
+
+      if (Number(data.amount) > 0) {
+        await createPayment({
+          memberId,
+          amount: Number(data.amount) as number,
+          modeOfPayment: "cash",
+          description: "",
+          date: new Date().toISOString().split("T")[0],
+        });
+      }
+
       if (result) {
         form.reset();
         onClose();
       }
     } catch (error) {
-      console.error('Failed to create member:', error);
+      console.error("Failed to create member:", error);
     }
   };
 
+  const occupationValue = form.watch("occupation");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Add New Member</DialogTitle>
         </DialogHeader>
@@ -102,7 +167,11 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter email" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="Enter email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -162,7 +231,21 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
               )}
             />
 
-            {/* Occupation */}
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter amount" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Occupation Dropdown */}
             <FormField
               control={form.control}
               name="occupation"
@@ -170,7 +253,166 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 <FormItem>
                   <FormLabel>Occupation</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter occupation" {...field} />
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select occupation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {occupations.map((job) => (
+                          <SelectItem key={job} value={job}>
+                            {job}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Other Occupation Field */}
+            {occupationValue === "Other" && (
+              <FormField
+                control={form.control}
+                name="otherOccupation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Specify Occupation</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter occupation" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Student Fields */}
+            {occupationValue === "Student" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="educationLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Education Level</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. B.Tech, 12th, MBA"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="college"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>College</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter college name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
+            {/* Birth Year */}
+            <FormField
+              control={form.control}
+              name="birthYear"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Birth Year</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter birth year" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Sangh Years */}
+            <FormField
+              control={form.control}
+              name="sanghYears"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>संघ आयु</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter years"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Role */}
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>दायित्व</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter role" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Training Dropdown */}
+            <FormField
+              control={form.control}
+              name="training"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>परशिक्षण</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {trainingOptions.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Uniform */}
+            <FormField
+              control={form.control}
+              name="uniform"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mr-2">गणवेश</FormLabel>
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,7 +425,7 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Member'}
+                {loading ? "Adding..." : "Add Member"}
               </Button>
             </div>
           </form>
@@ -192,3 +434,96 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
     </Dialog>
   );
 };
+
+const occupations = [
+  // Agriculture & Labour
+  "Farmer",
+  "Daily Wage Worker",
+  "Agricultural Worker",
+  "Fisherman",
+  "Construction Worker",
+  "Factory Worker",
+  "Miner",
+
+  // Transport & Services
+  "Driver",
+  "Auto Rickshaw Driver",
+  "Truck Driver",
+  "Delivery Person",
+  "Electrician",
+  "Plumber",
+  "Carpenter",
+  "Mechanic",
+  "Tailor",
+  "Barber",
+  "Cook / Chef",
+  "Housekeeping Staff",
+  "Security Guard",
+  "Sanitation Worker",
+
+  // Small Business & Trade
+  "Shopkeeper",
+  "Street Vendor",
+  "Small Business Owner",
+  "Trader",
+  "Business",
+  "Entrepreneur",
+
+  // Clerical & Support
+  "Clerk",
+  "Office Assistant",
+  "Receptionist",
+  "Data Entry Operator",
+  "Call Center Employee",
+
+  // Education
+  "Teacher",
+  "Professor",
+  "Tutor",
+  "Researcher",
+
+  // Healthcare
+  "Nurse",
+  "Doctor",
+  "Pharmacist",
+  "Lab Technician",
+  "Healthcare Worker",
+  "AYUSH Practitioner",
+
+  // Engineering & Tech
+  "Engineer",
+  "Civil Engineer",
+  "Mechanical Engineer",
+  "Electrical Engineer",
+  "Software Developer",
+  "IT Professional",
+  "Technician",
+
+  // Finance & Administration
+  "Bank Employee",
+  "Accountant",
+  "Chartered Accountant",
+  "Auditor",
+  "Financial Analyst",
+
+  // Govt & Public Service
+  "Government Employee",
+  "Police",
+  "Armed Forces",
+  "Post Office Employee",
+  "Railway Employee",
+
+  // Arts & Media
+  "Artist",
+  "Musician",
+  "Actor",
+  "Journalist",
+  "Designer",
+
+  // Others
+  "Homemaker",
+  "Student",
+  "Retired",
+  "Unemployed",
+  "Other",
+];

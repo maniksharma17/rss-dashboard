@@ -150,7 +150,7 @@ export default function LoginPage() {
                           type="password" 
                           placeholder="Enter your password" 
                           {...field} 
-                        />
+                        />  
                       </FormControl>
                       <FormMessage />
                     </FormItem>
