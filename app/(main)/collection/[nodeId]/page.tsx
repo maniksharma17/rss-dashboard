@@ -527,7 +527,7 @@ export default function CollectionReportPage() {
               </motion.div>
 
               {/* Top vs Worst children (bars) */}
-              {report.type != "Branch" && (
+              {report.type != "Gram/Shakha/Mohalla/Sthaan" && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -557,7 +557,7 @@ export default function CollectionReportPage() {
                 </motion.div>
               )}
 
-              {report.type != "Branch" && (
+              {report.type != "Gram/Shakha/Mohalla/Sthaan" && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -704,7 +704,7 @@ export default function CollectionReportPage() {
               </div>
             </motion.div>
 
-            {report.type != "Branch" && (
+            {report.type != "Gram/Shakha/Mohalla/Sthaan" && (
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
