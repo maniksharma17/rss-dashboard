@@ -41,27 +41,26 @@ const trainingOptions = [
 // -------------------
 // Validation Schema
 // -------------------
-const schema = z
-  .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address").or(z.literal("")),
-    phone: z.string().optional(),
-    address: z.string().min(1, "Address is required"),
-    age: z.number().min(0),
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address").or(z.literal("")),
+  phone: z.string().optional(),
+  address: z.string().min(1, "Address is required"),
+  age: z.number().min(0),
 
-    occupation: z.string().optional(),
-    otherOccupation: z.string().optional(),
-    educationLevel: z.string().optional(),
-    college: z.string().optional(),
+  occupation: z.string().optional(),
+  otherOccupation: z.string().optional(),
+  educationLevel: z.string().optional(),
+  college: z.string().optional(),
 
-    birthYear: z.string().optional(),
-    sanghYears: z.coerce.number().optional(),
-    role: z.string().optional(),
-    training: z.string().optional(),
-    uniform: z.boolean().optional(),
+  birthYear: z.string().optional(),
+  sanghYears: z.coerce.number().optional(),
+  role: z.string().optional(),
+  training: z.string().optional(),
+  uniform: z.boolean().optional(),
 
-    amount: z.string().optional(),
-  });
+  amount: z.string().optional(),
+});
 
 type FormData = z.infer<typeof schema>;
 
@@ -189,6 +188,21 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Birth Year */}
+              <FormField
+                control={form.control}
+                name="birthYear"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Birth Year</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter birth year" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -323,21 +337,6 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 />
               </>
             )}
-
-            {/* Birth Year */}
-            <FormField
-              control={form.control}
-              name="birthYear"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Birth Year</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter birth year" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             {/* Sangh Years */}
             <FormField
