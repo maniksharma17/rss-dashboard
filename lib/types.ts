@@ -20,8 +20,8 @@ export interface Node {
 export interface Member {
   _id: string;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   address: string;
   age: number;
   occupation: string;
