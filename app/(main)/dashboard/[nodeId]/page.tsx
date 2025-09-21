@@ -222,7 +222,7 @@ export default function DashboardPage() {
     return members.filter(
       (m) =>
         m.name.toLowerCase().includes(q) ||
-        m.phone.toLowerCase().includes(q) ||
+        m?.phone?.toLowerCase().includes(q) ||
         (m.occupation || "").toLowerCase().includes(q)
     );
   }, [members, memberSearch]);
