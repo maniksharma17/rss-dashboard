@@ -28,6 +28,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { EditMemberModal } from "@/components/modals/edit-member-modal";
 import { DeleteMemberModal } from "@/components/modals/delete-member-modal";
+import api from "@/lib/api";
 
 /**
  * Single-column, subtle design:
@@ -70,6 +71,19 @@ export default function MemberPaymentsPage() {
     setDeleteOpen(false);
     router.back(); 
   };
+
+    async function deletePayment(paymentId: string) {
+    if (!confirm("Are you sure you want to delete this payment?")) return;
+
+    try {
+      await api.delete(`payments/${paymentId}`);
+      fetchMember(); 
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting payment.");
+    }
+  }
+
 
 
   const searchRef = useRef<HTMLInputElement | null>(null);
@@ -144,7 +158,7 @@ export default function MemberPaymentsPage() {
   }, [filteredPayments, page, limit]);
 
   // DataTable columns
-  const paymentColumns: Column<PaymentRow>[] = [
+    const paymentColumns: Column<PaymentRow>[] = [
     {
       key: "date",
       header: "Date",
@@ -154,9 +168,15 @@ export default function MemberPaymentsPage() {
       key: "modeOfPayment",
       header: "Payment Mode",
       render: (value: Mode) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === "cash" ? "bg-green-50 text-green-800" : value === "upi" ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            value === "cash"
+              ? "bg-green-50 text-green-800"
+              : value === "upi"
+              ? "bg-blue-50 text-blue-800"
+              : "bg-amber-50 text-amber-800"
+          }`}
+        >
           {String(value)?.toUpperCase?.() ?? "-"}
         </span>
       ),
@@ -166,7 +186,21 @@ export default function MemberPaymentsPage() {
       header: "Amount",
       render: (value: number) => inr(value),
     },
+    {
+      key: "_id",
+      header: "Actions",
+      render: (_: any, row: PaymentRow) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => deletePayment(row._id as string)}
+        >
+          <Trash2 className="h-4 w-4 text-red-600" />
+        </Button>
+      ),
+    },
   ];
+
 
   // Export helpers (CSV)
   async function exportCSV(useFiltered = true) {

@@ -47,9 +47,9 @@ const schema = z
     email: z.string().email("Invalid email address").or(z.literal("")),
     phone: z.string().min(10, "Phone number must be at least 10 digits"),
     address: z.string().min(1, "Address is required"),
-    age: z.number().min(1, "Age must be greater than 0"),
+    age: z.number().min(0),
 
-    occupation: z.string().min(1, "Occupation is required"),
+    occupation: z.string().optional(),
     otherOccupation: z.string().optional(),
     educationLevel: z.string().optional(),
     college: z.string().optional(),
@@ -436,6 +436,8 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
 };
 
 const occupations = [
+  "Other",
+
   // Agriculture & Labour
   "Farmer",
   "Daily Wage Worker",
@@ -525,5 +527,4 @@ const occupations = [
   "Student",
   "Retired",
   "Unemployed",
-  "Other",
 ];
